@@ -1,0 +1,58 @@
+name: Build Mac Pet App
+
+# 触发条件：当代码推送到仓库时，或手动点击 Actions 按钮运行
+on: 
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest  # 关键：指定服务器使用最新的 macOS 系统
+
+    steps:
+    # 1. 检出（拉取）当前仓库代码
+    - uses: actions/checkout@v4
+
+    # 2. 搭建 Python 3.10 环境
+    - name: Set up Python 3.10.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10.11'
+
+    # 3. 安装项目依赖库
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        # 安装 tkinter 支持（macOS 可能需要）
+        brew install python-tk || true 
+       
+    # 4. 执行 PyInstaller 打包
+    - name: Build with PyInstaller
+      run: |
+        # --name: 生成的应用名称
+        # --windowed: 隐藏黑色终端控制台（GUI 程序必备）
+        # --onefile: 整合为一个入口执行文件
+        # main.py: 替换为你的项目实际主入口文件名
+        pyinstaller --name "DesktopPet" \
+        --windowed \
+        --onefile \
+        --clean \
+        --noconfirm \
+        --add-data "gifs/*.gif:gifs" \  # 关键：包含 GIF 资源文件夹 
+        pet.py
+
+    # 5. 压缩 .app 文件（极其重要的一步）
+    - name: Zip the App
+      run: |
+        cd dist
+        # 将打包好的 .app 文件夹打包为 zip，防止下载时丢失 macOS 独有的权限元数据
+        zip -r DesktopPet_Mac.zip DesktopPet.app
+
+    # 6. 上传构建产物至 GitHub 供下载
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Mac-Pet-App
+        path: dist/DesktopPet_Mac.zip
+        retention-days: 5 # 保存期限 5 天
