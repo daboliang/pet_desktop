@@ -28,19 +28,9 @@ jobs:
         brew install python-tk || true 
        
     # 4. 执行 PyInstaller 打包
-    - name: Build with PyInstaller
+    - name: Build with PyInstaller 
       run: |
-        # --name: 生成的应用名称
-        # --windowed: 隐藏黑色终端控制台（GUI 程序必备）
-        # --onefile: 整合为一个入口执行文件
-        # main.py: 替换为你的项目实际主入口文件名
-        pyinstaller --name "DesktopPet" \
-        --windowed \
-        --onefile \
-        --clean \
-        --noconfirm \
-        --add-data "gifs/*.gif:gifs" \  # 关键：包含 GIF 资源文件夹 
-        pet.py
+        pyinstaller --name "DesktopPet" --windowed --onefile --clean --noconfirm --add-data "gifs/*.gif:gifs" pet.py
 
     # 5. 压缩 .app 文件（极其重要的一步）
     - name: Zip the App
